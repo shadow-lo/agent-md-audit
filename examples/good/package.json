@@ -1,0 +1,1 @@
+{ "name": "good", "private": true, "scripts": { "test": "vitest", "lint": "eslint ." } }

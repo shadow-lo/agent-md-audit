@@ -1,0 +1,38 @@
+name: "agent-md-audit"
+description: "Audit AGENTS.md and other AI agent instruction files for stale paths, broken commands and conflicting rules."
+branding:
+  icon: "file-text"
+  color: "orange"
+inputs:
+  paths:
+    description: "Space-separated instruction files or folders to scan."
+    default: "."
+  strict:
+    description: "Fail on warnings too (true/false)."
+    default: "false"
+  ignore:
+    description: "Comma-separated rule codes to skip, e.g. AM101,AM104."
+    default: ""
+  max-lines:
+    description: "Warn when a file is longer than this many lines."
+    default: "200"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - shell: bash
+      run: pip install --quiet "${{ github.action_path }}"
+    - shell: bash
+      env:
+        AMA_PATHS: ${{ inputs.paths }}
+        AMA_STRICT: ${{ inputs.strict }}
+        AMA_IGNORE: ${{ inputs.ignore }}
+        AMA_MAX_LINES: ${{ inputs.max-lines }}
+      run: |
+        args=(--format github --max-lines "$AMA_MAX_LINES")
+        [ "$AMA_STRICT" = "true" ] && args+=(--strict)
+        [ -n "$AMA_IGNORE" ] && args+=(--ignore "$AMA_IGNORE")
+        # shellcheck disable=SC2086
+        agent-md-audit "${args[@]}" $AMA_PATHS
